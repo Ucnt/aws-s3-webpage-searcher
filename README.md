@@ -54,3 +54,4 @@ python search_webpages.py -wl webpage_list.txt --max_subpages 20
 - "amazonaws.com" will sometimes be found in the source code but no bucket found.  Manual analyisis is then required.  Sometimes it's bad regex.  Sometimes it's not actually loading content.
 - There may be a few FPs, e.g. on non-existent buckets if "-us-east-1" is in the bucket name but it's removed.
 - You might (?) need to ensure all the __init__.py files are +x'd 
+- Progressbar will show the # of websites left to search, not the total subpages that are being searched.  e.g. -d example.com --max_subpages 20 will show 1 site.
