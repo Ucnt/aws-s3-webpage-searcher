@@ -1,0 +1,11 @@
+Hello,
+
+This is a test upload by @TechNerdings (https://twitter.com/TechNerdings).
+
+If you see this in your bucket, you are allowing anyone and/or authenticated AWS users to uplaod files to your bucket.
+
+I would recommend that you update these settings as it likely is not intended.
+
+DM is open if you have any questions.
+
+https://www.linkedin.com/in/mattsvensson/
