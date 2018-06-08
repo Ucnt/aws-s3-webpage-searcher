@@ -51,3 +51,5 @@ python search_webpages.py -wl webpage_list.txt --max_subpages 20
 ## Notes
 - Edit the module/testupload.txt file to be personalized. It has my info in it for now :)
 - This is tested on Ubuntu and Python 3.6.5
+- "amazonaws.com" will sometimes be found in the source code but no bucket found.  Manual analyisis is then required.  Sometimes it's bad regex.  Sometimes it's not actually loading content.
+- There may be a few FPs, e.g. on non-existent buckets if "-us-east-1" is in the bucket name but it's removed.
