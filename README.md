@@ -9,19 +9,13 @@ Explanation of impact is here: https://www.mattsvensson.com/nerdings/2018/5/30/c
 
 
 ## Usage
-Search a specific webpage
-'''
+- Search a specific webpage
 python search_webpages.py -w mydomain.com
-'''
 
-Search a specific webpage and up to 20 of its subpages (e.g. links and links to links on that domain)
-'''
+- Search a specific webpage and up to 20 of its subpages (e.g. links and links to links on that domain)
 python search_webpages.py -w mydomain.com --max_subpages 20
-'''
 
-Search a list of webpages and up to 20 of their subpages (e.g. links and links to links on that domain)
-'''
+- Search a list of webpages and up to 20 of their subpages (e.g. links and links to links on that domain)
 python search_webpages.py -wl webpage_list.txt --max_subpages 20
-'''
 
 
