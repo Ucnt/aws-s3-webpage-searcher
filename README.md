@@ -1,4 +1,4 @@
-# html-versionator
+# aws-s3-webpage-searcher
 
 Scans a webpage or set of webpages for content loaded from S3 buckets and checks if the bucket is write-enabled or does not exist.
 
