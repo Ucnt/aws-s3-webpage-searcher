@@ -2,6 +2,7 @@
 
 Scans a webpage or set of webpages for content loaded from S3 buckets and checks if the bucket is write-enabled or does not exist.
 
+
 ## Purpose 
 Detect loading of webpage content from insecure S3 buckets or ones that no longer exist.
 
@@ -47,6 +48,6 @@ python search_webpages.py -wl webpage_list.txt --max_subpages 20
 }
 
 
-
 ## Notes
 - Edit the module/testupload.txt file to be personalized. It has my info in it for now :)
+- This is tested on Ubuntu and Python 3.6.5
