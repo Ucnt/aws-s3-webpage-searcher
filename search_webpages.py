@@ -15,10 +15,10 @@ import json
 
 def get_urls(args):
     urls = []
-    if args.domain:
-        urls.append(args.domain)
-    if args.domain_list:
-        for line in open(args.domain_list):
+    if args.webpage:
+        urls.append(args.webpage)
+    if args.webpage_list:
+        for line in open(args.webpage_list):
             line = line.strip()
             if line:
                 urls.append(line)
