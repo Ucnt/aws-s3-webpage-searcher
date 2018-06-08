@@ -22,6 +22,10 @@ Explanation of impact is here: https://www.mattsvensson.com/nerdings/2018/5/30/c
 
 python search_webpages.py -w mydomain.com
 
+- Search a specific webpage with verbose output (e.g. attempted buckets, etc)
+
+python search_webpages.py -pv -w mydomain.com
+
 - Search a specific webpage and up to 20 of its subpages (e.g. links and links to links on that domain)
 
 python search_webpages.py -w mydomain.com --max_subpages 20
@@ -32,12 +36,16 @@ python search_webpages.py -wl webpage_list.txt --max_subpages 20
 
 
 ## Output Example
+- An example, like below, will be printed each time a vuln is found.
+- At the end of the search, all vulns found will be printed (to consolidate findings).
+
 {
     "Vuln" : "Writable S3 Bucket", 
     "Website" : "example.com",
     "Example URL" : "example.com/subpage/othersubpage,
     "Bucket" : "mybucket",
 }
+
 
 
 ## Notes
