@@ -174,13 +174,14 @@ def get_bucket_names_from_source_code(url, source_code):
                 if "//" in bucket_name:
                     bucket_name = bucket_name.split("//")[len(bucket_name.split("//"))-1]
 
-                #Add the bucket if it looks valid.
-                if not any(bad_bucket_name_content in bucket_name for bad_bucket_name_content in bad_bucket_name_contents):
-                    if len(bucket_name) <= max_bucket_len and len(bucket_name) >= 3:
-                        if bucket_name not in junk_buckets:
-                            good_bucket_names.append(bucket_name)
-                        else:
-                            bad_bucket_names.append(bucket_name)
+                #Add the bucket if it looks valid, checking if it is in the source code (e.g. no replacing messed it up)
+                if bucket_name in source_code:
+                    if not any(bad_bucket_name_content in bucket_name for bad_bucket_name_content in bad_bucket_name_contents):
+                        if len(bucket_name) <= max_bucket_len and len(bucket_name) >= 3:
+                            if bucket_name not in junk_buckets:
+                                good_bucket_names.append(bucket_name)
+                            else:
+                                bad_bucket_names.append(bucket_name)
 
             #See if any buckets were found, good or bad
             if not good_bucket_names and not bad_bucket_names:
