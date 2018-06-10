@@ -15,7 +15,7 @@ Explanation of impact is here: https://www.mattsvensson.com/nerdings/2018/5/30/c
 - Create access keys and secret keys (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html)
 - Install the AWS CLI (https://docs.aws.amazon.com/cli/latest/userguide/installing.html)
 - Add your access keys to the AWS CLI
-- Python modules: requests
+- Python modules: requests, bs4
 
 
 ## Usage
@@ -58,3 +58,4 @@ python search_webpages.py -wl webpage_list.txt --max_subpages 20
 
 ## Next Step
 - I wrote a module to get Google search results (~300-400/term) and need to add that to this library.
+- Modify the get_subpages to return a JSON object e.g. { "url" : { "parent" : "parenturl.com", "source_code" : "<http>...</http"}} to help speed up follow-on steps where you are looking through the source code, requiring a second GET of the page.
