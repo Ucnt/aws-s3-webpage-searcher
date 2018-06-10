@@ -15,7 +15,7 @@ Explanation of impact is here: https://www.mattsvensson.com/nerdings/2018/5/30/c
 - Create access keys and secret keys (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html)
 - Install the AWS CLI (https://docs.aws.amazon.com/cli/latest/userguide/installing.html)
 - Add your access keys to the AWS CLI
-- Python modules: requests
+- Python modules: requests, bs4
 
 
 ## Usage
