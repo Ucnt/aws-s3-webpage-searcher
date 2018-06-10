@@ -163,13 +163,12 @@ def get_source_code(url):
                     r = requests.get(url_to_check, verify=False, timeout=10, headers=headers)
                     return r.text
                 except Exception as e:
-                    if not is_ok_error(e):
-                        logger.log.critical("Error - %s - %s" % (url, get_exception().replace("\n", "  ")))
+                    pass
 
         #Final return just in case....
         return ""
     except:
-        logger.log.warning("Error getting source code for %s: %s" % (url, get_exception().replace("\n", "  ")))
+        pass
         return ""
 
 
@@ -193,8 +192,6 @@ def possible_download_link(url):
             # logger.log.critical("Skipping %s - Not HTML: %s" % (url, content_type))
             return True
     except Exception as e:
-        if not is_ok_error(e):
-            logger.log.critical("Exception %s" % (get_exception().replace("\n", "  ")))
         return True
 
 
