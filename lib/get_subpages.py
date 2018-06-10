@@ -69,7 +69,7 @@ def get_subpages_recursive(url, max_subpages=30):
         # logger.log.warning("Returning %s subpages for %s" % (len(all_subpages), url))
         return all_subpages
     except:
-        logger.log.warning("Error getting subpages for %s: %s" % (url, get_exception()))
+        logger.log.warning("Error getting subpages for %s: %s" % (url, get_exception().replace("\n", "  ")))
         return []
 
 
@@ -85,7 +85,7 @@ def get_subpages_recursive_helper(url, all_subpages, unchecked_subpages, max_sub
             all_subpages.extend(new_subpages)
             unchecked_subpages.extend(new_subpages)
     except:
-        logger.log.warning("Error getting subpages for %s: %s" % (url, get_exception()))
+        logger.log.warning("Error getting subpages for %s: %s" % (url, get_exception().replace("\n", "  ")))
 
 
 def get_subpages(url):
