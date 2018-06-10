@@ -46,9 +46,13 @@ def test_upload(website_base, domain_bucket):
         else:
             if "aws: not found" in output:
                 logger.log.critical("AWS CLI not installed.  Install and configure it w/ access and secret keys before continuing: https://docs.aws.amazon.com/cli/latest/userguide/installing.html")
+                sys.exit(1)
             else:
                 logger.log.warning("Error: %s -> %s -> %s" % (url, bucket_name, output))
     except Exception as e:
+        if "aws: not found" in output:
+            logger.log.critical("AWS CLI not installed.  Install and configure it w/ access and secret keys before continuing: https://docs.aws.amazon.com/cli/latest/userguide/installing.html")
+            sys.exit(1)
         logger.log.critical("Error: %s-%s-%s: %s" % (website_base, url, bucket_name, e))
 
 
