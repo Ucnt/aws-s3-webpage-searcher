@@ -58,3 +58,4 @@ python search_webpages.py -wl webpage_list.txt --max_subpages 20
 
 ## Next Step
 - I wrote a module to get Google search results (~300-400/term) and need to add that to this library.
+- Modify the get_subpages to return a JSON object e.g. { "url" : { "parent" : "parenturl.com", "source_code" : "<http>...</http"}} to help speed up follow-on steps where you are looking through the source code, requiring a second GET of the page.
