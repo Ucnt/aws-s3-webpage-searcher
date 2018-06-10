@@ -16,9 +16,6 @@ import time
 sleep_betwee_checks = .5
 max_num_threads = 10
 
-#Headers for http requests
-headers = {'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:59.0) Gecko/20100101 Firefox/59.0'}
-#Content in HTML that indicates that the pages is not valid
 
 ok_errors = [
             "Read timed out",
@@ -72,7 +69,7 @@ def get_subpages_recursive(url, max_subpages=30):
         # logger.log.warning("Returning %s subpages for %s" % (len(all_subpages), url))
         return all_subpages
     except:
-        logger.log.critical("Error getting subpages for %s: %s" % (url, get_exception()))
+        logger.log.warning("Error getting subpages for %s: %s" % (url, get_exception()))
         return []
 
 
@@ -88,7 +85,7 @@ def get_subpages_recursive_helper(url, all_subpages, unchecked_subpages, max_sub
             all_subpages.extend(new_subpages)
             unchecked_subpages.extend(new_subpages)
     except:
-        logger.log.critical("Error getting subpages for %s: %s" % (url, get_exception()))
+        logger.log.warning("Error getting subpages for %s: %s" % (url, get_exception()))
 
 
 def get_subpages(url):
@@ -98,7 +95,7 @@ def get_subpages(url):
     try:
         bsObj = BeautifulSoup(get_source_code(url), "html.parser")
     except:
-        logger.log.critical("Error parsing source code: %s" % (get_exception().replace("\n", "  ")))
+        logger.log.warning("Error parsing source code: %s" % (get_exception().replace("\n", "  ")))
         return []
 
     try:
@@ -126,7 +123,7 @@ def get_subpages(url):
                             href = "%s/%s" % (get_url_base(url), href[1::])
                             links.append(href)
             except:
-                logger.log.critical("Error getting subpages for %s: %s" % (url, get_exception().replace("\n", "  ")))
+                logger.log.warning("Error getting subpages for %s: %s" % (url, get_exception().replace("\n", "  ")))
                 pass
 
         #Get unique set of lnks
@@ -136,7 +133,7 @@ def get_subpages(url):
             # logger.log.warning("Subpages from %s: %s" % (url, unique_links))
         return unique_links
     except:
-        logger.log.critical("Error getting subpages for %s: %s" % (url, get_exception().replace("\n", "  ")))
+        logger.log.warning("Error getting subpages for %s: %s" % (url, get_exception().replace("\n", "  ")))
         return []
 
 
@@ -168,7 +165,7 @@ def get_source_code(url):
         #Final return just in case....
         return ""
     except:
-        pass
+        logger.log.warning("Error getting source code for %s - %s" % (url, get_exception().replace("\n", "  ")))
         return ""
 
 
@@ -181,7 +178,7 @@ def possible_download_link(url):
             file_size = int(r.headers['Content-Length'])
             #If page is >= 3MB (aka 3,000,000 bits), skip it
             if file_size >= 3000000:
-                # logger.log.critical("Skipping %s - Large page: %s bits" % (url, file_size))
+                # logger.log.warning("Skipping %s - Large page: %s bits" % (url, file_size))
                 return True
         except:
             pass
@@ -189,7 +186,7 @@ def possible_download_link(url):
         if "text/html" in content_type:
             return False
         else:
-            # logger.log.critical("Skipping %s - Not HTML: %s" % (url, content_type))
+            # logger.log.warning("Skipping %s - Not HTML: %s" % (url, content_type))
             return True
     except Exception as e:
         return True
@@ -204,7 +201,7 @@ def get_url_base(url):
             base_url = "%s.%s" % (base_url_parts[len(base_url_parts)-2], base_url_parts[len(base_url_parts)-1])
         return base_url.strip()
     except Exception as e:
-        logger.log.critical("Error getting base url for %s - %s" % (url, e))
+        logger.log.warning("Error getting base url for %s - %s" % (url, e))
         return url.strip()
 
 
@@ -215,4 +212,4 @@ def is_ok_error(e):
                 return True
         return False
     except: 
-        logger.log.critical("Exception %s" % (get_exception().replace("\n", "  ")))
+        logger.log.warning("Exception %s" % (get_exception().replace("\n", "  ")))
