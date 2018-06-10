@@ -44,7 +44,7 @@ def test_upload(website_base, domain_bucket):
         elif "Error parsing parameter" in output:
             logger.log.critical("Error: %s -> %s -> %s" % (url, bucket_name, output))
         else:
-            if "aws: not found" in str(output):
+            if "aws: not found" in output:
                 logger.log.critical("AWS CLI not installed.  Install and configure it w/ access and secret keys before continuing: https://docs.aws.amazon.com/cli/latest/userguide/installing.html")
             else:
                 logger.log.warning("Error: %s -> %s -> %s" % (url, bucket_name, output))
