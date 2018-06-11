@@ -178,10 +178,12 @@ def get_bucket_names_from_source_code(url, source_code):
                 if bucket_name in source_code:
                     if not any(bad_bucket_name_content in bucket_name for bad_bucket_name_content in bad_bucket_name_contents):
                         if len(bucket_name) <= max_bucket_len and len(bucket_name) >= 3:
-                            if bucket_name not in junk_buckets:
-                                good_bucket_names.append(bucket_name)
-                            else:
+                            if bucket_name in junk_buckets:
                                 bad_bucket_names.append(bucket_name)
+                            elif "elasticbeanstalk-" in bucket_name:
+                                bad_bucket_names.append(bucket_name)
+                            else:
+                                good_bucket_names.append(bucket_name)
 
             #See if any buckets were found, good or bad
             if not good_bucket_names and not bad_bucket_names:
