@@ -36,6 +36,7 @@ ok_errors = [
             "InvalidSchema",
             "TooManyRedirects",
             "NotImplementedError",
+            "HeaderParsingErro",
             "No connection adapters were found",
 ]
 
@@ -63,8 +64,14 @@ def get_subpages_recursive(url, max_subpages=30):
             while threading.active_count() >= max_num_threads:
                 time.sleep(sleep_betwee_checks)
 
+            #Wait for all threads to finish
             if threading.active_count() == 1:
-                break
+                #Be sure no unchecked pages were added before leaving
+                try:
+                    if len(all_subpages) < max_subpages:
+                        threading.Thread(target=get_subpages_recursive_helper, args=(unchecked_subpages.pop(), all_subpages, unchecked_subpages, max_subpages)).start()
+                except IndexError:
+                    break
 
         # logger.log.warning("Returning %s subpages for %s" % (len(all_subpages), url))
         return all_subpages
