@@ -82,7 +82,6 @@ def check_for_writable_buckets(url, max_subpages):
                 pass
                 time.sleep(sleep_between_checks)
 
-
         #Wait for all threads to finish.
         while threading.active_count() > 1:
             time.sleep(sleep_between_checks)
@@ -94,7 +93,7 @@ def check_for_writable_buckets(url, max_subpages):
                     buckets_with_website.append((vuln_url, bucket))
 
         if buckets_with_website:
-            # logger.log.warning("Running potential buckets for %s: %s" % (url, buckets_with_website))
+            logger.log.warning("Running potential buckets for %s: %s" % (url, buckets_with_website))
             for bucket_with_website in buckets_with_website:
                 vuln = test_upload(url, bucket_with_website)
                 if vuln:
