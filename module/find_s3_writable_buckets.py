@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 from lib.logger import *
 from lib.traceback import *
@@ -209,7 +210,7 @@ def extract_bucket_names(source_code):
             end_index = first_char+max_bucket_len
 
             #Get subdomain strings
-            bucket_names_subdomain = re.findall(r'''[\/'" ](.+?)\.s3\.amazonaws\.com''', source_code[start_index:first_char+len(search_string)])
+            bucket_names_subdomain = re.findall(r'''[\/'" ]([a-zA-Z1-9\.\-]{3,63})\.s3\.amazonaws\.com''', source_code[start_index:first_char+len(search_string)])
             #Be sure you've got the bucket name as the regex will take the first instance of the optional char
             for bucket_name in bucket_names_subdomain:
                 # print(bucket_name)
@@ -220,7 +221,7 @@ def extract_bucket_names(source_code):
                 bucket_names.append(bucket_name)
 
             #Get subfolder strings
-            bucket_names_subfolder = re.findall(r'''[^.]s3\.amazonaws\.com\/(.+?)[\/'" ]''', source_code[first_char-1:end_index])
+            bucket_names_subfolder = re.findall(r'''[^.]s3\.amazonaws\.com\/([a-zA-Z1-9\.\-]{3,63})[\/'" ]''', source_code[first_char-1:end_index])
             #Be sure you've got the bucket name as the regex will take the last instance of the optional char
             for bucket_name in bucket_names_subfolder:
                 # print(bucket_name)
