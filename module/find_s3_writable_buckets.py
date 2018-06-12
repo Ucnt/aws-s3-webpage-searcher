@@ -159,7 +159,7 @@ def run_website(url, website):
                 # logger.log.critical("%s - amazonaws found...Checking for buckets in source code." % (url))
 
                 #Replace some of the html encoding
-                source_code = str(source_code.replace("\/","/"))
+                source_code = str(source_code.replace("\/","/").replace("') + '", "").replace('") + "', ''))
 
 
                 bucket_names = []
@@ -188,7 +188,9 @@ def run_website(url, website):
 
                 #See if any buckets were found, good or bad
                 if not good_bucket_names and not bad_bucket_names:
-                    logger.log.critical("%s: amazonaws.com in source but no buckets found" % (url))
+                    #Large # FPs on charbeat imports
+                    if "static.chartbeat.com/js/chartbeat.js" not in source_code:
+                        logger.log.critical("%s: amazonaws.com in source but no buckets found" % (url))
                     return
 
                 #Return unique bucket names
