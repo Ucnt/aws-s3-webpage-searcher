@@ -158,6 +158,10 @@ def run_website(url, website):
             else:
                 # logger.log.critical("%s - amazonaws found...Checking for buckets in source code." % (url))
 
+                #Replace some of the html encoding
+                source_code = str(source_code.replace("\/","/"))
+
+
                 bucket_names = []
                 good_bucket_names = []
                 bad_bucket_names = []
