@@ -14,12 +14,12 @@ class ProgressBar(object):
         """Initialized the ProgressBar object"""
         #Output format and variables
         self.symbol = "#"               #Needs to be 1 char
-        self.fmt = '''%(percent)3d%% %(progress_bar)s %(cur_item)s of %(num_items)s   %(items_per_sec)s%(per_sec_label)s   Run Time: %(run_time)s   ETA: %(eta)s    '''
+        self.fmt = '''%(percent)3d%% %(progress_bar)s %(cur_item)s of %(num_items)s   %(items_per_sec)s%(per_sec_label)s   Run Time: %(run_time)s   ETA: %(eta)s%(end_spaces)s'''
         assert len(self.symbol) == 1    #If higher, progress bar won't populate properly
         try:
-            self.width = math.floor(int(os.popen('stty size', 'r').read().split()[1])*.35)
+            self.progressbar_width = math.floor(int(os.popen('stty size', 'r').read().split()[1])*.35)
         except:
-            self.width = 40                 #Length of progress bar
+            self.progressbar_width = 40                 #Length of progress bar
         
         #Vars related to counts/time
         self.start_epoch = int(time.time())         #Assumes you create the object just as you start the first item
@@ -43,8 +43,8 @@ class ProgressBar(object):
             percent = 0
 
         #Make the progress bar
-        bar_fill_size = int(self.width * percent)
-        progress_bar = "%s%s" % ((self.symbol * bar_fill_size) , (' ' * (self.width - bar_fill_size)))
+        bar_fill_size = int(self.progressbar_width * percent)
+        progress_bar = "%s%s" % ((self.symbol * bar_fill_size) , (' ' * (self.progressbar_width - bar_fill_size)))
 
         run_time = time.time() - self.start_epoch
 
@@ -68,7 +68,12 @@ class ProgressBar(object):
             'run_time': self.get_eta(run_time, get_ms=True),
             'eta': self.get_eta(time_left),
             'per_sec_label': self.per_sec_label,
+            'end_spaces' : "",
         }
+
+        #Add end spaes to stop ghost characters.  Keep in the call in case screen size changes
+        num_end_spaces = int(os.popen('stty size', 'r').read().split()[1]) - len(self.fmt%args) - 1 
+        args['end_spaces'] = " " * num_end_spaces
 
         #Print the update
         print(self.fmt%args, end="\r", flush=True)
@@ -78,7 +83,7 @@ class ProgressBar(object):
     def get_eta(self, time_left, get_ms=False):
         """Return the time left/run in terms of months, days, hrs, min, and sec"""
         if not time_left:
-            return "0s/unk"
+            return "0s"
         else:
             time_items_remaining = time.gmtime(time_left)
             
@@ -99,7 +104,7 @@ class ProgressBar(object):
             if time_left_string:
                 return time_left_string
             else:
-                return "0s/unk"
+                return "0s"
 
 
     def done(self, print_final_output=True):
