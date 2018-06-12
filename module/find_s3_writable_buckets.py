@@ -189,7 +189,7 @@ def run_website(url, website):
                 #See if any buckets were found, good or bad
                 if not good_bucket_names and not bad_bucket_names:
                     #Large # FPs on charbeat imports
-                    if "static.chartbeat.com/js/chartbeat.js" not in source_code:
+                    if "static.chartbeat.com" not in source_code:
                         logger.log.critical("%s: amazonaws.com in source but no buckets found" % (url))
                     return
 
