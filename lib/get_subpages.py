@@ -153,7 +153,7 @@ def get_source_code(url):
                     # logger.log.warning("Skipping possible download link %s" % (url))
                     return ""
                 r = requests.get(url, verify=False, timeout=10, headers=headers)
-                return r.text
+                return r.text.encode().decode("unicode_escape")
             except:
                 pass
 
@@ -165,7 +165,7 @@ def get_source_code(url):
                     if possible_download_link(url_to_check):
                         return ""
                     r = requests.get(url_to_check, verify=False, timeout=10, headers=headers)
-                    return r.text
+                    return r.text.encode().decode("unicode_escape")
                 except Exception as e:
                     pass
 
