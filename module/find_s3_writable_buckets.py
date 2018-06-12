@@ -13,6 +13,7 @@ import multiprocessing
 import queue
 import requests
 import urllib3
+import http
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from bs4 import BeautifulSoup
 import re
@@ -110,7 +111,6 @@ def run_website(url, website):
     try:
         source_code = get_source_code(url)
         if source_code:
-
             # logger.log.warning("Starting to get bucket names from: %s" % (url))
             start_time = int(time.time())
 
@@ -157,8 +157,6 @@ def run_website(url, website):
                 return
             else:
                 # logger.log.critical("%s - amazonaws found...Checking for buckets in source code." % (url))
-                #Sometimes there will be 2F instead of %2F but not replacing it to prevent bucket name replacs
-                source_code = str(source_code.replace("%3A", ":").replace("%2F","/").replace("\/","/"))
 
                 bucket_names = []
                 good_bucket_names = []
