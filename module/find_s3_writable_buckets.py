@@ -81,6 +81,11 @@ def check_for_writable_buckets(url, max_subpages):
             while threading.active_count() >= max_num_threads:
                 pass
                 time.sleep(sleep_between_checks)
+
+
+        #Wait for all threads to finish.
+        while threading.active_count() > 1:
+            time.sleep(sleep_between_checks)
         
         buckets_with_website = []
         for vuln_url, buckets in website.buckets_dict.items():
@@ -89,7 +94,7 @@ def check_for_writable_buckets(url, max_subpages):
                     buckets_with_website.append((vuln_url, bucket))
 
         if buckets_with_website:
-            logger.log.warning("Running potential buckets for %s: %s" % (url, buckets_with_website))
+            # logger.log.warning("Running potential buckets for %s: %s" % (url, buckets_with_website))
             for bucket_with_website in buckets_with_website:
                 vuln = test_upload(url, bucket_with_website)
                 if vuln:
@@ -106,94 +111,89 @@ def run_website(url, website):
     try:
         source_code = get_source_code(url)
         if source_code:
-            website.buckets_dict[url] = get_bucket_names_from_source_code(url, source_code)
-    except:
-        logger.log.critical("Exception %s" % (get_exception().replace("\n", "  ")))
 
+            # logger.log.warning("Starting to get bucket names from: %s" % (url))
+            start_time = int(time.time())
 
-def get_bucket_names_from_source_code(url, source_code):
-    try:
-        # logger.log.warning("Starting to get bucket names from: %s" % (url))
-        start_time = int(time.time())
+            #Remove DNS prefetch...
+            source_code = source_code.replace("rel='dns-prefetch' href='//s3.amazonaws.com'", "")
+            source_code = source_code.replace("rel='dns-prefetch' href='s3.amazonaws.com'", "")
+            source_code = source_code.replace("rel='dns-prefetch' href='http://s3.amazonaws.com", "")
+            source_code = source_code.replace("rel='dns-prefetch' href='https://s3.amazonaws.com", "")
 
-        #Remove DNS prefetch...
-        source_code = source_code.replace("rel='dns-prefetch' href='//s3.amazonaws.com'", "")
-        source_code = source_code.replace("rel='dns-prefetch' href='s3.amazonaws.com'", "")
-        source_code = source_code.replace("rel='dns-prefetch' href='http://s3.amazonaws.com", "")
-        source_code = source_code.replace("rel='dns-prefetch' href='https://s3.amazonaws.com", "")
+            source_code = source_code.replace('rel="dns-prefetch" href="//s3.amazonaws.com"', '')
+            source_code = source_code.replace('rel="dns-prefetch" href="s3.amazonaws.com"', '')
+            source_code = source_code.replace('rel="dns-prefetch" href="http://s3.amazonaws.com', "")
+            source_code = source_code.replace('rel="dns-prefetch" href="https://s3.amazonaws.com', "")
 
-        source_code = source_code.replace('rel="dns-prefetch" href="//s3.amazonaws.com"', '')
-        source_code = source_code.replace('rel="dns-prefetch" href="s3.amazonaws.com"', '')
-        source_code = source_code.replace('rel="dns-prefetch" href="http://s3.amazonaws.com', "")
-        source_code = source_code.replace('rel="dns-prefetch" href="https://s3.amazonaws.com', "")
+            #First, be sure at least amazonaws.com is in the source code
+            if "amazonaws.com" not in source_code:
+                return
 
-        #First, be sure at least amazonaws.com is in the source code
-        if "amazonaws.com" not in source_code:
-            return []
+            #Remove region names so you don't have to worry about them in the regex
+            source_code = source_code.replace(":80", "")
+            source_code = source_code.replace(":8080", "")
+            source_code = source_code.replace(":8000", "")
+            source_code = source_code.replace(":443", "")
+            source_code = source_code.replace("-us-east-2", "")
+            source_code = source_code.replace("-us-east-1", "")
+            source_code = source_code.replace("-us-west-2", "")
+            source_code = source_code.replace("-us-west-1", "")
+            source_code = source_code.replace("-ap-south-1", "")
+            source_code = source_code.replace("-ap-northeast-1", "")
+            source_code = source_code.replace("-ap-northeast-2", "")
+            source_code = source_code.replace("-ap-northeast-3", "")
+            source_code = source_code.replace("-ap-southeast-1", "")
+            source_code = source_code.replace("-ap-southeast-2", "")
+            source_code = source_code.replace("-ca-central-1", "")
+            source_code = source_code.replace("-cn-north-1", "")
+            source_code = source_code.replace("-eu-central-1", "")
+            source_code = source_code.replace("-eu-west-1", "")
+            source_code = source_code.replace("-eu-west-2", "")
+            source_code = source_code.replace("-eu-west-3", "")
+            source_code = source_code.replace("-sa-east-1", "")
 
-        #Remove region names so you don't have to worry about them in the regex
-        source_code = source_code.replace(":80", "")
-        source_code = source_code.replace(":8080", "")
-        source_code = source_code.replace(":8000", "")
-        source_code = source_code.replace(":443", "")
-        source_code = source_code.replace("-us-east-2", "")
-        source_code = source_code.replace("-us-east-1", "")
-        source_code = source_code.replace("-us-west-2", "")
-        source_code = source_code.replace("-us-west-1", "")
-        source_code = source_code.replace("-ap-south-1", "")
-        source_code = source_code.replace("-ap-northeast-1", "")
-        source_code = source_code.replace("-ap-northeast-2", "")
-        source_code = source_code.replace("-ap-northeast-3", "")
-        source_code = source_code.replace("-ap-southeast-1", "")
-        source_code = source_code.replace("-ap-southeast-2", "")
-        source_code = source_code.replace("-ca-central-1", "")
-        source_code = source_code.replace("-cn-north-1", "")
-        source_code = source_code.replace("-eu-central-1", "")
-        source_code = source_code.replace("-eu-west-1", "")
-        source_code = source_code.replace("-eu-west-2", "")
-        source_code = source_code.replace("-eu-west-3", "")
-        source_code = source_code.replace("-sa-east-1", "")
+            #Be sure it's not an ELB or other amazonaws link
+            if "s3.amazonaws.com" not in source_code:
+                return
+            else:
+                # logger.log.critical("%s - amazonaws found...Checking for buckets in source code." % (url))
+                #Sometimes there will be 2F instead of %2F but not replacing it to prevent bucket name replacs
+                source_code = str(source_code.replace("%3A", ":").replace("%2F","/").replace("\/","/"))
 
-        #Be sure it's not an ELB or other amazonaws link
-        if "s3.amazonaws.com" not in source_code:
-            return []
-        else:
-            # logger.log.critical("%s - amazonaws found...Checking for buckets in source code." % (url))
-            #Sometimes there will be 2F instead of %2F but not replacing it to prevent bucket name replacs
-            source_code = str(source_code.replace("%3A", ":").replace("%2F","/").replace("\/","/"))
+                bucket_names = []
+                good_bucket_names = []
+                bad_bucket_names = []
 
-            bucket_names = []
-            good_bucket_names = []
-            bad_bucket_names = []
+                #Pull out all possible buckets
+                bucket_names = extract_bucket_names(source_code)
 
-            #Pull out all possible buckets
-            bucket_names = extract_bucket_names(source_code)
+                for bucket_name in bucket_names:
+                    bucket_name = bucket_name.strip()
+                    #See if it got too much data from an earlier "//" string
+                    if "//" in bucket_name:
+                        bucket_name = bucket_name.split("//")[len(bucket_name.split("//"))-1]
 
-            for bucket_name in bucket_names:
-                bucket_name = bucket_name.strip()
-                #See if it got too much data from an earlier "//" string
-                if "//" in bucket_name:
-                    bucket_name = bucket_name.split("//")[len(bucket_name.split("//"))-1]
+                    #Add the bucket if it looks valid, checking if it is in the source code (e.g. no replacing messed it up)
+                    if bucket_name in source_code:
+                        if not any(bad_bucket_name_content in bucket_name for bad_bucket_name_content in bad_bucket_name_contents):
+                            if len(bucket_name) <= max_bucket_len and len(bucket_name) >= 3:
+                                if bucket_name in junk_buckets:
+                                    bad_bucket_names.append(bucket_name)
+                                elif "elasticbeanstalk-" in bucket_name:
+                                    bad_bucket_names.append(bucket_name)
+                                else:
+                                    good_bucket_names.append(bucket_name)
 
-                #Add the bucket if it looks valid, checking if it is in the source code (e.g. no replacing messed it up)
-                if bucket_name in source_code:
-                    if not any(bad_bucket_name_content in bucket_name for bad_bucket_name_content in bad_bucket_name_contents):
-                        if len(bucket_name) <= max_bucket_len and len(bucket_name) >= 3:
-                            if bucket_name in junk_buckets:
-                                bad_bucket_names.append(bucket_name)
-                            elif "elasticbeanstalk-" in bucket_name:
-                                bad_bucket_names.append(bucket_name)
-                            else:
-                                good_bucket_names.append(bucket_name)
+                #See if any buckets were found, good or bad
+                if not good_bucket_names and not bad_bucket_names:
+                    logger.log.critical("%s: amazonaws.com in source but no buckets found" % (url))
+                    return
 
-            #See if any buckets were found, good or bad
-            if not good_bucket_names and not bad_bucket_names:
-                logger.log.critical("%s: amazonaws.com in source but no buckets found" % (url))
-
-            #Return unique bucket names
-            good_bucket_names = list(set(good_bucket_names))
-            # logger.log.warning("Done Getting buckets from  %s.  Took %s sec. Results: %s" % (url, (int(time.time()) - start_time), good_bucket_names))
-            return good_bucket_names
+                #Return unique bucket names
+                good_bucket_names = list(set(good_bucket_names))
+                # logger.log.warning("Done Getting buckets from  %s.  Took %s sec. Results: %s" % (url, (int(time.time()) - start_time), good_bucket_names))
+                website.buckets_dict[url] = good_bucket_names
     except:
         logger.log.critical("Exception %s" % (get_exception().replace("\n", "  ")))
 
@@ -210,7 +210,7 @@ def extract_bucket_names(source_code):
             end_index = first_char+max_bucket_len
 
             #Get subdomain strings
-            bucket_names_subdomain = re.findall(r'''[\/'" ]([a-zA-Z1-9\.\-]{3,63})\.s3\.amazonaws\.com''', source_code[start_index:first_char+len(search_string)])
+            bucket_names_subdomain = re.findall(r'''[\/'" ]([a-zA-Z1-9\.\-\_]{3,63})\.s3\.amazonaws\.com''', source_code[start_index:first_char+len(search_string)])
             #Be sure you've got the bucket name as the regex will take the first instance of the optional char
             for bucket_name in bucket_names_subdomain:
                 # print(bucket_name)
@@ -221,7 +221,7 @@ def extract_bucket_names(source_code):
                 bucket_names.append(bucket_name)
 
             #Get subfolder strings
-            bucket_names_subfolder = re.findall(r'''[^.]s3\.amazonaws\.com\/([a-zA-Z1-9\.\-]{3,63})[\/'" ]''', source_code[first_char-1:end_index])
+            bucket_names_subfolder = re.findall(r'''[^.]s3\.amazonaws\.com\/([a-zA-Z1-9\.\-\_]{3,63})[\/'" ]''', source_code[first_char-1:end_index])
             #Be sure you've got the bucket name as the regex will take the last instance of the optional char
             for bucket_name in bucket_names_subfolder:
                 # print(bucket_name)
