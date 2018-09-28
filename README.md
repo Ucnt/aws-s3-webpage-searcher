@@ -1,10 +1,10 @@
 # aws-s3-webpage-searcher
 
-Scans a webpage or set of webpages for content loaded from S3 buckets and checks if the bucket is write-enabled or does not exist.
+Scans a webpage or set of webpages, and their linked, for content loaded from S3 buckets and checks if the bucket is write-enabled or does not exist.
 
 
 ## Purpose 
-Detect loading of webpage content from insecure S3 buckets or ones that no longer exist.
+Detect loading of webpage content (HTML or JS) from insecure S3 buckets or ones that no longer exist.
 
 Explanation of impact is here: https://www.mattsvensson.com/nerdings/2018/5/30/compromising-aws-s3-hosetd-websites-at-scale
 
@@ -53,8 +53,7 @@ python search_webpages.py -wl webpage_list.txt --max_subpages 20
 - This is tested on Ubuntu and Python 3.6.5
 - "amazonaws.com" will sometimes be found in the source code but no bucket found.  Manual analyisis is then required.  Sometimes it's bad regex.  Sometimes it's not actually loading content.
 - There may be a few FPs, e.g. on non-existent buckets if "-us-east-1" is in the bucket name but it's removed.
-- You might (?) need to ensure all the __init__.py files are +x'd 
-- Progressbar will show the # of websites left to search, not the total subpages that are being searched.  e.g. -d example.com --max_subpages 20 will show 1 site.
+- Progressbar will show the # of websites left to search, not the total subpages that are being searched.  e.g. -w example.com --max_subpages 20 will show 1 site.
 
 ## Next Step
 - I wrote a module to get Google search results (~300-400/term) and need to add that to this library.
