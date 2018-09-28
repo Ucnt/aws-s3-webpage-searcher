@@ -179,25 +179,15 @@ def get_source_code(url):
 
 def possible_download_link(url):
     try:
-        r = requests.get(url, verify=False, stream=True, timeout=10)
-        # print(vars(r))
-        content_type = r.headers['Content-Type']
-        try:
-            file_size = int(r.headers['Content-Length'])
-            #If page is >= 3MB (aka 3,000,000 bits), skip it
-            if file_size >= 3000000:
-                # logger.log.warning("Skipping %s - Large page: %s bits" % (url, file_size))
-                return True
-        except:
-            pass
-        
-        if "text/html" in content_type:
+        content_type = requests.get(url, verify=False, stream=True, timeout=10).headers['Content-Type']
+        if "text/html" in content_type or "javascript" in content_type:
             return False
         else:
-            # logger.log.warning("Skipping %s - Not HTML: %s" % (url, content_type))
             return True
     except Exception as e:
+        logger.log.warning("error - %s - %s" % (url, e))
         return True
+
 
 
 def get_url_base(url):

@@ -57,7 +57,7 @@ def find_writable_buckets(urls, max_subpages=50):    #main method
         pool.close()
         pool.join()
 
-        logger.log.critical("Done checking for write-enabled ornon-existant S3 buckets")
+        logger.log.critical("Done checking for write-enabled or non-existant S3 buckets")
         return vulns_found
     except:
         logger.log.critical("Exception %s" % (get_exception().replace("\n", "  ")))
@@ -108,97 +108,106 @@ def check_for_writable_buckets(url, max_subpages):
 
 
 def run_website(url, website):
-    try:
         source_code = get_source_code(url)
         if source_code:
-            # logger.log.warning("Starting to get bucket names from: %s" % (url))
-            start_time = int(time.time())
+            #Reformat the source code to make S3 link extraction easier
+            source_code = reformat_s3_links(source_code)
+            find_buckets(website, url, source_code)
 
-            #Remove DNS prefetch...
-            source_code = source_code.replace("rel='dns-prefetch' href='//s3.amazonaws.com'", "")
-            source_code = source_code.replace("rel='dns-prefetch' href='s3.amazonaws.com'", "")
-            source_code = source_code.replace("rel='dns-prefetch' href='http://s3.amazonaws.com", "")
-            source_code = source_code.replace("rel='dns-prefetch' href='https://s3.amazonaws.com", "")
+            #Get links from any javascript on the pages as well
+            new_js_links = get_js_links(website, url, source_code)
+            if new_js_links:
+                logger.log.warning("%s JS links found on %s" % (len(new_js_links), url))
+            for new_js_link in new_js_links:
+                source_code = get_source_code(new_js_link)
+                source_code = reformat_s3_links(source_code)
+                find_buckets(website, new_js_link, source_code)
+                    
 
-            source_code = source_code.replace('rel="dns-prefetch" href="//s3.amazonaws.com"', '')
-            source_code = source_code.replace('rel="dns-prefetch" href="s3.amazonaws.com"', '')
-            source_code = source_code.replace('rel="dns-prefetch" href="http://s3.amazonaws.com', "")
-            source_code = source_code.replace('rel="dns-prefetch" href="https://s3.amazonaws.com', "")
+def find_buckets(website, url, source_code):
+    try:
+        #Be sure it's not an ELB or other amazonaws link
+        if "s3.amazonaws.com" not in source_code:
+            return
+        else:
+            # logger.log.critical("%s - amazonaws found...Checking for buckets in source code." % (url))
+            bucket_names = []
+            good_bucket_names = []
+            bad_bucket_names = []
 
-            #First, be sure at least amazonaws.com is in the source code
-            if "amazonaws.com" not in source_code:
+            #Pull out all possible buckets
+            bucket_names = extract_bucket_names(source_code)
+
+            for bucket_name in bucket_names:
+                bucket_name = bucket_name.strip()
+                #See if it got too much data from an earlier "//" string
+                if "//" in bucket_name:
+                    bucket_name = bucket_name.split("//")[len(bucket_name.split("//"))-1]
+
+                #Add the bucket if it looks valid, checking if it is in the source code (e.g. no replacing messed it up)
+                if bucket_name in source_code:
+                    if not any(bad_bucket_name_content in bucket_name for bad_bucket_name_content in bad_bucket_name_contents):
+                        if len(bucket_name) <= max_bucket_len and len(bucket_name) >= 3:
+                            if bucket_name in junk_buckets:
+                                bad_bucket_names.append(bucket_name)
+                            elif "elasticbeanstalk-" in bucket_name:
+                                bad_bucket_names.append(bucket_name)
+                            else:
+                                good_bucket_names.append(bucket_name)
+
+            #See if any buckets were found, good or bad
+            if not good_bucket_names and not bad_bucket_names:
+                #Large # FPs on charbeat imports
+                if "static.chartbeat.com" not in source_code:
+                    logger.log.critical("%s: amazonaws.com in source but no buckets found" % (url))
                 return
 
-            #Remove region names so you don't have to worry about them in the regex
-            source_code = source_code.replace(":80", "")
-            source_code = source_code.replace(":8080", "")
-            source_code = source_code.replace(":8000", "")
-            source_code = source_code.replace(":443", "")
-            source_code = source_code.replace("-us-east-2", "")
-            source_code = source_code.replace("-us-east-1", "")
-            source_code = source_code.replace("-us-west-2", "")
-            source_code = source_code.replace("-us-west-1", "")
-            source_code = source_code.replace("-ap-south-1", "")
-            source_code = source_code.replace("-ap-northeast-1", "")
-            source_code = source_code.replace("-ap-northeast-2", "")
-            source_code = source_code.replace("-ap-northeast-3", "")
-            source_code = source_code.replace("-ap-southeast-1", "")
-            source_code = source_code.replace("-ap-southeast-2", "")
-            source_code = source_code.replace("-ca-central-1", "")
-            source_code = source_code.replace("-cn-north-1", "")
-            source_code = source_code.replace("-eu-central-1", "")
-            source_code = source_code.replace("-eu-west-1", "")
-            source_code = source_code.replace("-eu-west-2", "")
-            source_code = source_code.replace("-eu-west-3", "")
-            source_code = source_code.replace("-sa-east-1", "")
-
-            #Be sure it's not an ELB or other amazonaws link
-            if "s3.amazonaws.com" not in source_code:
-                return
-            else:
-                # logger.log.critical("%s - amazonaws found...Checking for buckets in source code." % (url))
-
-                #Replace some of the html encoding
-                source_code = str(source_code.replace("\/","/").replace("') + '", "").replace('") + "', ''))
-
-
-                bucket_names = []
-                good_bucket_names = []
-                bad_bucket_names = []
-
-                #Pull out all possible buckets
-                bucket_names = extract_bucket_names(source_code)
-
-                for bucket_name in bucket_names:
-                    bucket_name = bucket_name.strip()
-                    #See if it got too much data from an earlier "//" string
-                    if "//" in bucket_name:
-                        bucket_name = bucket_name.split("//")[len(bucket_name.split("//"))-1]
-
-                    #Add the bucket if it looks valid, checking if it is in the source code (e.g. no replacing messed it up)
-                    if bucket_name in source_code:
-                        if not any(bad_bucket_name_content in bucket_name for bad_bucket_name_content in bad_bucket_name_contents):
-                            if len(bucket_name) <= max_bucket_len and len(bucket_name) >= 3:
-                                if bucket_name in junk_buckets:
-                                    bad_bucket_names.append(bucket_name)
-                                elif "elasticbeanstalk-" in bucket_name:
-                                    bad_bucket_names.append(bucket_name)
-                                else:
-                                    good_bucket_names.append(bucket_name)
-
-                #See if any buckets were found, good or bad
-                if not good_bucket_names and not bad_bucket_names:
-                    #Large # FPs on charbeat imports
-                    if "static.chartbeat.com" not in source_code:
-                        logger.log.critical("%s: amazonaws.com in source but no buckets found" % (url))
-                    return
-
-                #Return unique bucket names
-                good_bucket_names = list(set(good_bucket_names))
-                # logger.log.warning("Done Getting buckets from  %s.  Took %s sec. Results: %s" % (url, (int(time.time()) - start_time), good_bucket_names))
-                website.buckets_dict[url] = good_bucket_names
+            #Return unique bucket names
+            good_bucket_names = list(set(good_bucket_names))
+            website.buckets_dict[url] = good_bucket_names
     except:
         logger.log.critical("Exception %s" % (get_exception().replace("\n", "  ")))
+
+
+def reformat_s3_links(source_code):
+    #Remove DNS prefetch...
+    source_code = source_code.replace("rel='dns-prefetch' href='//s3.amazonaws.com'", "")
+    source_code = source_code.replace("rel='dns-prefetch' href='s3.amazonaws.com'", "")
+    source_code = source_code.replace("rel='dns-prefetch' href='http://s3.amazonaws.com", "")
+    source_code = source_code.replace("rel='dns-prefetch' href='https://s3.amazonaws.com", "")
+
+    source_code = source_code.replace('rel="dns-prefetch" href="//s3.amazonaws.com"', '')
+    source_code = source_code.replace('rel="dns-prefetch" href="s3.amazonaws.com"', '')
+    source_code = source_code.replace('rel="dns-prefetch" href="http://s3.amazonaws.com', "")
+    source_code = source_code.replace('rel="dns-prefetch" href="https://s3.amazonaws.com', "")
+
+    #Remove region names so you don't have to worry about them in the regex
+    source_code = source_code.replace(":80", "")
+    source_code = source_code.replace(":8080", "")
+    source_code = source_code.replace(":8000", "")
+    source_code = source_code.replace(":443", "")
+    source_code = source_code.replace("-us-east-2", "")
+    source_code = source_code.replace("-us-east-1", "")
+    source_code = source_code.replace("-us-west-2", "")
+    source_code = source_code.replace("-us-west-1", "")
+    source_code = source_code.replace("-ap-south-1", "")
+    source_code = source_code.replace("-ap-northeast-1", "")
+    source_code = source_code.replace("-ap-northeast-2", "")
+    source_code = source_code.replace("-ap-northeast-3", "")
+    source_code = source_code.replace("-ap-southeast-1", "")
+    source_code = source_code.replace("-ap-southeast-2", "")
+    source_code = source_code.replace("-ca-central-1", "")
+    source_code = source_code.replace("-cn-north-1", "")
+    source_code = source_code.replace("-eu-central-1", "")
+    source_code = source_code.replace("-eu-west-1", "")
+    source_code = source_code.replace("-eu-west-2", "")
+    source_code = source_code.replace("-eu-west-3", "")
+    source_code = source_code.replace("-sa-east-1", "")
+
+    #Replace some of the html encoding
+    source_code = str(source_code.replace("\/","/").replace("') + '", "").replace('") + "', ''))
+
+    return source_code
 
 
 def extract_bucket_names(source_code):
@@ -238,6 +247,52 @@ def extract_bucket_names(source_code):
     except:
         logger.log.critical("Error extracting names: %s" % (get_exception().replace("\n", "  ")))
 
+
+def get_js_links(website, url, source_code):
+    logger.log.warning("Checking for js on %s" % (url))
+        
+    #Get all links
+    try:
+        bsObj = BeautifulSoup(source_code, "html.parser")
+    except Exception as e:
+        logger.log.critical("Error parsing source code: %s" % (e))
+        return []
+
+    new_js_links = []
+    try:
+        js_links = [i.get('src') for i in bsObj.find_all('script') if i.get('src')]
+        for js_link in js_links:
+            #See if it's an external lnk
+            if js_link[0] == "/" and  js_link[1] == "/":
+                js_link = js_link[2::]
+                if js_link not in website.js_links_found:
+                    website.js_links_found.append(js_link)
+                    new_js_links.append(js_link)
+            #Strip it of http/https just to clean it up
+            else:            
+                if "http" not in js_link:
+                    #Just try it as is, e.g. if it's "somedomain.com/js/file.js"  Just be sure it's not a /.....
+                    if js_link not in website.js_links_found:
+                        if js_link[0] != "/":
+                            website.js_links_found.append(js_link)
+                            new_js_links.append(js_link)
+                    #Also try it with the current domain, e.g. if it's "js/file.js"
+                    if website.base_url not in js_link:
+                        if js_link[0] == "/":
+                            js_link = "%s%s" % (website.base_url, js_link)
+                        else:
+                            js_link = "%s/%s" % (website.base_url, js_link)
+                        if js_link not in website.js_links_found:
+                            website.js_links_found.append(js_link)
+                            new_js_links.append(js_link)
+                #Just be sure it's in there in some way...
+                if js_link not in website.js_links_found:
+                    website.js_links_found.append(js_link)
+                    new_js_links.append(js_link)
+        return new_js_links
+    except Exception as e:
+        logger.log.critical("Error parsing source code: %s" % (e))
+        return new_js_links
 
 def is_ok_error(e):
     try:

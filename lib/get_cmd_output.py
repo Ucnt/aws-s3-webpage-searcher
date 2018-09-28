@@ -10,4 +10,4 @@ def get_cmd_output(command):
                             stderr=subprocess.STDOUT,
                             shell=True,)
     output, error = p.communicate()
-    return output
+    return str(output).replace('\\n', '\n')

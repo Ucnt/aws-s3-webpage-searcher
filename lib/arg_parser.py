@@ -17,8 +17,7 @@ parser.add_argument('--max_subpages', default=0, type=int, help='Number of subpa
 ## Debug Options
 ###############################################
 parser.add_argument('-f', '--debug_file_name', help='Debug output file')
-parser.add_argument('-p', '--print_stdout', default=True, help="Print critical items")      #Make printing defaulted on
-parser.add_argument('-pv', '--print_verbose', action='store_true', help="Print verbose")
+parser.add_argument('-v', '--print_verbose', action='store_true', help="Print verbose")
 
 #Compile the argument paser options
 args = parser.parse_args()

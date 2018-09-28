@@ -25,7 +25,7 @@ python search_webpages.py -w mydomain.com
 
 - Search a specific webpage with verbose output (e.g. attempted buckets, etc)
 
-python search_webpages.py -pv -w mydomain.com
+python search_webpages.py -v -w mydomain.com
 
 - Search a specific webpage and up to 20 of its subpages (e.g. links and links to links on that domain)
 
