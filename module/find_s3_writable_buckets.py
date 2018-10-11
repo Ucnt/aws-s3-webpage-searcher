@@ -1,10 +1,10 @@
 
 #!/usr/bin/env python3
+from lib.constants import *
 from lib.logger import *
 from lib.traceback import *
 from lib.progressbar import *
-from lib.get_subpages import *
-from module.website import *
+from lib.get_subpages import Page, get_subpages, get_source_code
 from module.test_upload import *
 from module.find_s3_writable_buckets_constants import *
 import datetime
@@ -24,7 +24,6 @@ except:
 import threading
 import time
 sleep_between_checks = .1
-max_num_threads = 5
 
 
 def find_writable_buckets(urls, max_subpages=50):    #main method
@@ -68,31 +67,49 @@ def check_for_writable_buckets(url, max_subpages):
         # logger.log.warning("Checking %s" % (url))
         start_time = time.time()
         vulns_found = []
-        website = Website(url=url, num_subpages=max_subpages)
-        website.subpages = get_subpages_recursive(url=website.url, max_subpages=website.num_subpages)
+        threads = []
 
-        # if len(website.subpages) < 5000:
-            # return []
-        # else:
-            # logger.log.critical("Starting: %s" %(url))
+        #Create the first page and set it up to store other page's buckets
+        page = Page(url=url)
+        page.source_code = get_source_code(page=page, include_js=True)
+        page.buckets_dict = {}
+        page.js_links_found = []
 
-        for subpage in website.subpages:
-            # run_website(subpage, website)
-            thread = threading.Thread(target=run_website, args=(subpage, website,)).start()
-            while threading.active_count() >= max_num_threads:
-                pass
+        #Get subpages
+        get_subpages(page=page, max_subpages=max_subpages)
+
+        #Run the base page
+        t = threading.Thread(target=run_website, args=(page, page,))
+        threads.append(t)
+        t.start()
+
+        for subpage in page.subpages:
+            t = threading.Thread(target=run_website, args=(page, subpage,))
+            threads.append(t)
+            t.start()
+            #Pause if at max length
+            while len(threads) >= max_subpages:
                 time.sleep(sleep_between_checks)
+                for thread in threads:
+                    if not thread.isAlive():
+                        threads.remove(thread)
 
         #Wait for all threads to finish.
-        while threading.active_count() > 1:
+        while threads:
+            #Remove finished thraeds
+            for thread in threads:
+                if not thread.isAlive():
+                    threads.remove(thread)
             time.sleep(sleep_between_checks)
         
+        #Compile buckets
         buckets_with_website = []
-        for vuln_url, buckets in website.buckets_dict.items():
+        for vuln_url, buckets in page.buckets_dict.items():
             for bucket in buckets:
                 if not any(existing_bucket == bucket for vuln_url, existing_bucket in buckets_with_website):
                     buckets_with_website.append((vuln_url, bucket))
 
+        #Run buckets
         if buckets_with_website:
             logger.log.warning("Running potential buckets for %s: %s" % (url, buckets_with_website))
             for bucket_with_website in buckets_with_website:
@@ -107,24 +124,28 @@ def check_for_writable_buckets(url, max_subpages):
         return []
 
 
-def run_website(url, website):
-        source_code = get_source_code(url)
-        if source_code:
+def run_website(page, subpage):
+    try:
+        if subpage.source_code:
             #Reformat the source code to make S3 link extraction easier
-            source_code = reformat_s3_links(source_code)
-            find_buckets(website, url, source_code)
+            subpage.source_code = reformat_s3_links(subpage.source_code)
+            find_buckets(page, subpage.url, subpage.source_code)
 
             #Get links from any javascript on the pages as well
-            new_js_links = get_js_links(website, url, source_code)
-            if new_js_links:
-                logger.log.warning("%s JS links found on %s" % (len(new_js_links), url))
+            new_js_links = get_js_links(page, subpage.url, subpage.source_code)
+            # if new_js_links:
+                # logger.log.warning("%s JS links found on %s" % (len(new_js_links), subpage.url))
             for new_js_link in new_js_links:
-                source_code = get_source_code(new_js_link)
+                p = Page(url=new_js_link)
+                source_code = get_source_code(p, include_js=True)
                 source_code = reformat_s3_links(source_code)
-                find_buckets(website, new_js_link, source_code)
-                    
+                find_buckets(page, new_js_link, source_code)
+    except:
+        logger.log.critical("Exception on %s: %s" % (subpage.url, get_exception().replace("\n", "  ")))
 
-def find_buckets(website, url, source_code):
+
+
+def find_buckets(page, url, source_code):
     try:
         #Be sure it's not an ELB or other amazonaws link
         if "s3.amazonaws.com" not in source_code:
@@ -138,7 +159,7 @@ def find_buckets(website, url, source_code):
             #Pull out all possible buckets
             bucket_names = extract_bucket_names(source_code)
 
-            for bucket_name in bucket_names:
+            for bucket_name in list(set(bucket_names)):
                 bucket_name = bucket_name.strip()
                 #See if it got too much data from an earlier "//" string
                 if "//" in bucket_name:
@@ -156,15 +177,15 @@ def find_buckets(website, url, source_code):
                                 good_bucket_names.append(bucket_name)
 
             #See if any buckets were found, good or bad
-            if not good_bucket_names and not bad_bucket_names:
+            # if not good_bucket_names and not bad_bucket_names:
                 #Large # FPs on charbeat imports
-                if "static.chartbeat.com" not in source_code:
-                    logger.log.critical("%s: amazonaws.com in source but no buckets found" % (url))
-                return
+                # if "static.chartbeat.com" not in source_code:
+                    # logger.log.warning("%s: amazonaws.com in source but no buckets found" % (url))
+                # return
 
             #Return unique bucket names
             good_bucket_names = list(set(good_bucket_names))
-            website.buckets_dict[url] = good_bucket_names
+            page.buckets_dict[url] = good_bucket_names
     except:
         logger.log.critical("Exception %s" % (get_exception().replace("\n", "  ")))
 
@@ -248,8 +269,8 @@ def extract_bucket_names(source_code):
         logger.log.critical("Error extracting names: %s" % (get_exception().replace("\n", "  ")))
 
 
-def get_js_links(website, url, source_code):
-    logger.log.warning("Checking for js on %s" % (url))
+def get_js_links(page, url, source_code):
+    # logger.log.warning("Checking for js on %s" % (url))
         
     #Get all links
     try:
@@ -265,29 +286,29 @@ def get_js_links(website, url, source_code):
             #See if it's an external lnk
             if js_link[0] == "/" and  js_link[1] == "/":
                 js_link = js_link[2::]
-                if js_link not in website.js_links_found:
-                    website.js_links_found.append(js_link)
+                if js_link not in page.js_links_found:
+                    page.js_links_found.append(js_link)
                     new_js_links.append(js_link)
             #Strip it of http/https just to clean it up
             else:            
                 if "http" not in js_link:
                     #Just try it as is, e.g. if it's "somedomain.com/js/file.js"  Just be sure it's not a /.....
-                    if js_link not in website.js_links_found:
+                    if js_link not in page.js_links_found:
                         if js_link[0] != "/":
-                            website.js_links_found.append(js_link)
+                            page.js_links_found.append(js_link)
                             new_js_links.append(js_link)
                     #Also try it with the current domain, e.g. if it's "js/file.js"
-                    if website.base_url not in js_link:
+                    if page.domain not in js_link:
                         if js_link[0] == "/":
-                            js_link = "%s%s" % (website.base_url, js_link)
+                            js_link = "%s%s" % (page.domain, js_link)
                         else:
-                            js_link = "%s/%s" % (website.base_url, js_link)
-                        if js_link not in website.js_links_found:
-                            website.js_links_found.append(js_link)
+                            js_link = "%s/%s" % (page.domain, js_link)
+                        if js_link not in page.js_links_found:
+                            page.js_links_found.append(js_link)
                             new_js_links.append(js_link)
                 #Just be sure it's in there in some way...
-                if js_link not in website.js_links_found:
-                    website.js_links_found.append(js_link)
+                if js_link not in page.js_links_found:
+                    page.js_links_found.append(js_link)
                     new_js_links.append(js_link)
         return new_js_links
     except Exception as e:

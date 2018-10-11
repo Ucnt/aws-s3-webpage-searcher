@@ -51,19 +51,3 @@ bad_html_conents = [
                     "403 forbidden",
                     "page not found"
                    ]
-
-ok_errors = [
-        "Read timed out",
-        "Invalid URL",
-        "timed out",
-        "Failed to establish a new connection",
-        "Max retries exceeded with url",
-        "UnicodeError",
-        "KeyError",
-        "InvalidSchema",
-        "InvalidURL",
-        "ConnectionError",
-        "Connection reset by peer",
-        "Connection aborted",
-        "RemoteDisconnected",
-]
