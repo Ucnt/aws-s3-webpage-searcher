@@ -35,6 +35,10 @@ python search_webpages.py -w mydomain.com --max_subpages 20
 
 python search_webpages.py -wl webpage_list.txt --max_subpages 20
 
+- Search a list of webpages and rerun previously searched pages  (individual pages "-w" will always rerun)
+
+python search_webpages.py -wl webpage_list.txt --rerun
+
 
 ## Output Example
 - An example, like below, will be printed each time a vuln is found.
