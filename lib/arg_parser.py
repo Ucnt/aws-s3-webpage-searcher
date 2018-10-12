@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description='''''')
 parser.add_argument('-w', '--webpage', default="", help='Run the test on this webpage only.')
 parser.add_argument('-wl', '--webpage_list', default="", help='Run the test on the given list of webpages')
 parser.add_argument('--max_subpages', default=0, type=int, help='Number of subpages to run from the initial webpage')
+parser.add_argument('--rerun', action='store_true', help="rerun previously searched sites")
 
 ###############################################
 ## Debug Options

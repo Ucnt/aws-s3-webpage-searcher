@@ -1,1 +1,16 @@
 none
+2018-10-12 15:07:26,876 | Running: Namespace(debug_file_name=None, max_subpages=0, print_verbose=False, rerun=False, webpage='', webpage_list='webpage_list.txt')
+2018-10-12 15:07:26,876 | Removing previously run sites.  Give me a sec...
+2018-10-12 15:07:26,876 | Checking for write-enabled or non-existant S3 buckets
+2018-10-12 15:07:30,010 | Done checking for write-enabled or non-existant S3 buckets
+2018-10-12 15:07:30,010 | *** No vulns found :( ***
+2018-10-12 15:07:40,571 | Running: Namespace(debug_file_name=None, max_subpages=0, print_verbose=False, rerun=False, webpage='', webpage_list='webpage_list.txt')
+2018-10-12 15:07:40,571 | Removing previously run sites.  Give me a sec...
+2018-10-12 15:07:40,571 | Checking for write-enabled or non-existant S3 buckets
+2018-10-12 15:07:40,689 | Done checking for write-enabled or non-existant S3 buckets
+2018-10-12 15:07:40,690 | *** No vulns found :( ***
+2018-10-12 15:08:22,870 | Running: Namespace(debug_file_name=None, max_subpages=0, print_verbose=False, rerun=False, webpage='', webpage_list='webpage_list.txt')
+2018-10-12 15:08:22,871 | Removing previously run sites (3).  Give me a sec...
+2018-10-12 15:08:22,871 | Checking for write-enabled or non-existant S3 buckets
+2018-10-12 15:08:22,988 | Done checking for write-enabled or non-existant S3 buckets
+2018-10-12 15:08:22,989 | *** No vulns found :( ***

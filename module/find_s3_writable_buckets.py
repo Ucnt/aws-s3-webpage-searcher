@@ -4,7 +4,7 @@ from lib.constants import *
 from lib.logger import *
 from lib.traceback import *
 from lib.progressbar import *
-from lib.get_subpages import Page, get_subpages, get_source_code
+from lib.get_subpages import Page, get_subpages, get_source_code, get_domain
 from module.test_upload import *
 from module.find_s3_writable_buckets_constants import *
 import datetime
@@ -29,7 +29,7 @@ sleep_between_checks = .1
 def find_writable_buckets(urls, max_subpages=50):    #main method
     try:
         logger.log.critical("Checking for write-enabled or non-existant S3 buckets")
-     
+
         vulns_found = []            #Store all vulns found
 
         pool_size = multiprocessing.cpu_count() * 2
@@ -117,11 +117,19 @@ def check_for_writable_buckets(url, max_subpages):
                 if vuln:
                     vulns_found.append(vuln)
 
+        #log the URL as searched
+        add_searched_site(url)
+
         # logger.log.warning("Finished %s in %s sec" % (url, (int(time.time()) - start_time)))
         return vulns_found
     except:
         logger.log.critical("Exception on %s: %s" % (url, get_exception().replace("\n", "  ")))
         return []
+
+
+def add_searched_site(url):
+    with open("%s/searched_sites.txt" % (list_dir), "a") as f:
+        f.write(get_domain(url)+"\n")
 
 
 def run_website(page, subpage):
@@ -142,7 +150,6 @@ def run_website(page, subpage):
                 find_buckets(page, new_js_link, source_code)
     except:
         logger.log.critical("Exception on %s: %s" % (subpage.url, get_exception().replace("\n", "  ")))
-
 
 
 def find_buckets(page, url, source_code):
@@ -177,13 +184,6 @@ def find_buckets(page, url, source_code):
                                 bad_bucket_names.append(bucket_name)
                             else:
                                 good_bucket_names.append(bucket_name)
-
-            #See if any buckets were found, good or bad
-            # if not good_bucket_names and not bad_bucket_names:
-                #Large # FPs on charbeat imports
-                # if "static.chartbeat.com" not in source_code:
-                    # logger.log.warning("%s: amazonaws.com in source but no buckets found" % (url))
-                # return
 
             #Return unique bucket names
             good_bucket_names = list(set(good_bucket_names))
