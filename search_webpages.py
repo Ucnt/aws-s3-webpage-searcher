@@ -31,13 +31,12 @@ def get_searched_sites():
 def get_urls(args, rerun):
     searched_sites = get_searched_sites()
 
-    if not rerun:
-        logger.log.critical("Removing %s previously run sites.  Give me a sec..." %(len(searched_sites)))
-
     urls = []
     if args.webpage:
         urls.append(args.webpage)
     if args.webpage_list:
+        if not rerun:
+            logger.log.critical("Removing %s previously run sites.  Give me a sec..." %(len(searched_sites)))
         for line in open(args.webpage_list):
             line = line.strip()
             if line:
