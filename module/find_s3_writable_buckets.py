@@ -173,6 +173,8 @@ def find_buckets(page, url, source_code):
                                 bad_bucket_names.append(bucket_name)
                             elif "elasticbeanstalk-" in bucket_name:
                                 bad_bucket_names.append(bucket_name)
+                            elif "blacklist" in url:
+                                bad_bucket_names.append(bucket_name)
                             else:
                                 good_bucket_names.append(bucket_name)
 
