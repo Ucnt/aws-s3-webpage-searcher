@@ -277,7 +277,7 @@ def get_js_links(page, url, source_code):
     #Get all links
     try:
         bsObj = BeautifulSoup(source_code, "html.parser")
-    excepte:
+    except:
         logger.log.warning("Error parsing source code: %s" % (get_exception().replace("\n", "  ")))
         return []
 
