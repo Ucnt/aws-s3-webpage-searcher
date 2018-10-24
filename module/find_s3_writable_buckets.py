@@ -36,7 +36,7 @@ def find_writable_buckets(urls, max_subpages=50):    #main method
         pool = multiprocessing.Pool(processes=pool_size)
         active_processes = []            #Store the processes until they are done
         for url in urls:
-            active_processes.append(pool.apply_async(check_for_writable_buckets, (url, max_subpages)))
+            active_processes.append(pool.apply_async(check_for_writable_buckets, (url.strip(), max_subpages)))
             
         #Give a progressbar as the active_processes come in
         num_items = len(urls)
