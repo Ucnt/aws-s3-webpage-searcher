@@ -4,7 +4,6 @@ from lib.traceback import *
 from lib.logger import *
 from lib.error_ignore import check_error_ignore
 import requests
-from tld import get_tld
 import urllib.parse
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -116,7 +115,7 @@ def get_page_links(page, include_js=True):
                         if page.domain not in href:
                             #IF the href has a TLD, it's prob going somewhere else
                             try:
-                                get_tld(href)
+                                get_domain(href)
                                 continue
                             except:
                                 pass
