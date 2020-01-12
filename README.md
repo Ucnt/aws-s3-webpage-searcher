@@ -6,9 +6,6 @@ Scans a webpage or set of webpages, and their linked, for content loaded from S3
 ## Purpose 
 Detect loading of webpage content (HTML or JS) from insecure S3 buckets or ones that no longer exist.
 
-Explanation of impact is here: https://www.mattsvensson.com/nerdings/2018/5/30/compromising-aws-s3-hosetd-websites-at-scale
-
-
 ## Requirements
 - Setup an AWS Account (https://portal.aws.amazon.com/billing/signup)
 - Create an AWS user (https://docs.aws.amazon.com/IAM/latest/UserGuide/id_users_create.html)
