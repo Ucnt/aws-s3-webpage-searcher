@@ -154,7 +154,7 @@ def get_source_code(page, include_js):
                 if invalid_webpage(page.url, include_js):
                     page.invalid = True
                     return ""
-                r = requests.get(page.url, verify=False, timeout=10, headers=headers)
+                r = requests.get(page.url, timeout=10, headers=headers)
                 page.url = r.url            #Update the URL to the redirected one
                 return urllib.parse.unquote(r.text.encode().decode("unicode_escape"))
             except:
@@ -169,7 +169,7 @@ def get_source_code(page, include_js):
                     if invalid_webpage(url_to_check, include_js):
                         page.invalid = True
                         return ""
-                    r = requests.get(url_to_check, verify=False, timeout=10, headers=headers)
+                    r = requests.get(url_to_check, timeout=10, headers=headers)
                     page.url = r.url            #Update the URL to the redirected one
                     return urllib.parse.unquote(r.text.encode().decode("unicode_escape"))
                 except Exception as e:
@@ -185,7 +185,7 @@ def get_source_code(page, include_js):
 
 def invalid_webpage(url, include_js):
     try:
-        r = requests.get(url, verify=False, stream=True, timeout=10)
+        r = requests.get(url, stream=True, timeout=10)
         # logger.log.warning(vars(r))
         content_type = r.headers['Content-Type']
         try:
